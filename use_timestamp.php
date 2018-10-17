@@ -41,7 +41,7 @@ $factory = new Mobil("STATIC");
 //var_dump($factory->where("tipe", "like", "%"));
 
 // CREATE
-/*
+
 $merk = new Merk();
 $merk->set("nama", "Merkku1");
 $merk->save();
@@ -53,10 +53,10 @@ $mobil->set("panjang", "3");
 $mobil->set("lebar", "4");
 $mobil->set("tinggi", "5");
 $mobil->save();
-*/
+
 
 // UPDATE
-$mobil = $factory->find(30);
+//$mobil = $factory->find(30);
 $mobil->set("tipe", "c-31-edit");
 $mobil->save();
 var_dump($mobil->getRelation("merk"));
@@ -94,3 +94,6 @@ var_dump($merk->getRelations("mobils"));
 //var_dump($factory->getTableFields());
 //$mobil = new Mobil();
 //var_dump($mobil);
+
+
+var_dump(date('r'));

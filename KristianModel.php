@@ -222,6 +222,12 @@ class KristianModel
         if($this->_is_inserted == true)
         {
             // update
+            // set timestamp column
+            if($this->_timestamp_updated_at != null && is_string($this->_timestamp_updated_at))
+            {
+                $this->set($this->_timestamp_updated_at, date("Y-m-d H:i:s"));
+            }
+
             $arrSetStatement = array();
             $arrWhereStatement = array();
 
@@ -246,6 +252,7 @@ class KristianModel
             $sql .= "UPDATE " . $this->_table_name . " SET " . implode(" , ", $arrSetStatement) . " WHERE " . implode(" AND ", $arrWhereStatement) . " ; ";
             if($this->_conn->query($sql) == true)
             {
+                /*
                 // update the timestamp column
                 if($this->_timestamp_updated_at != null && is_string($this->_timestamp_updated_at))
                 {
@@ -255,6 +262,7 @@ class KristianModel
                     $sqlTimestamp .= " WHERE " . implode(" AND ", $arrWhereStatement) . " ; ";
                     $this->_conn->query($sqlTimestamp);
                 }
+                */
                 return true;
             }
             else
@@ -265,6 +273,12 @@ class KristianModel
         else
         {
             // insert
+            // set timestamp column
+            if($this->_timestamp_created_at != null && is_string($this->_timestamp_created_at))
+            {
+                $this->set($this->_timestamp_created_at, date("Y-m-d H:i:s"));
+            }
+
             $arrColumnStatement = array();
             $arrValueStatement = array();
 
@@ -287,12 +301,15 @@ class KristianModel
 
             if($result == true)
             {
+                $this->_is_inserted = true;
+
                 // set PK jika AUTO_INCREMENT
                 if(!is_array($this->_primary_key) && $this->_is_incrementing == true)
                 {
                     $this->set($this->_primary_key, $this->_conn->insert_id);
                 }
 
+                /*
                 // update the timestamp column
                 if($this->_timestamp_created_at != null && is_string($this->_timestamp_created_at))
                 {
@@ -313,7 +330,9 @@ class KristianModel
                     $sqlTimestamp .= " SET " . $this->_timestamp_created_at . " = NOW()";
                     $sqlTimestamp .= " WHERE " . implode(" AND ", $arrWhereStatement) . " ; ";
                     $this->_conn->query($sqlTimestamp);
+                    $this->set($this->_timestamp_created_at, date("Y-m-d H:i:s"));
                 }
+                */
                 return true;
             }
             else

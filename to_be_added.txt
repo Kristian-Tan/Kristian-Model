@@ -1,0 +1,2 @@
+timestamp (field di db: created_at TIMESTAMP, updated_at TIMESTAMP)
+userstamp (field di db: edited_by VARCHAR(45), updated_by VARCHAR(45)

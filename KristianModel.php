@@ -247,13 +247,13 @@ class KristianModel
             if($this->_conn->query($sql) == true)
             {
                 // update the timestamp column
-                if($this->_timestamp_created_at != null && is_string($_timestamp_created_at))
+                if($this->_timestamp_updated_at != null && is_string($this->_timestamp_updated_at))
                 {
                     $sqlTimestamp = "";
                     $sqlTimestamp .= "UPDATE " . $this->_table_name;
-                    $sqlTimestamp .= " SET " . $this->_timestamp_updated_at . " = 'NOW()'";
+                    $sqlTimestamp .= " SET " . $this->_timestamp_updated_at . " = NOW()";
                     $sqlTimestamp .= " WHERE " . implode(" AND ", $arrWhereStatement) . " ; ";
-                    $this->_conn->query($sqlTimestamp)
+                    $this->_conn->query($sqlTimestamp);
                 }
                 return true;
             }
@@ -294,13 +294,25 @@ class KristianModel
                 }
 
                 // update the timestamp column
-                if($this->_timestamp_created_at != null && is_string($_timestamp_created_at))
+                if($this->_timestamp_created_at != null && is_string($this->_timestamp_created_at))
                 {
+                    $arrWhereStatement = array();
+                    if(is_array($this->_primary_key))
+                    {
+                        foreach ($this->_primary_key as $key => $value)
+                        {
+                            $arrWhereStatement[] = $value . " = '" . $this->get($value) . "'";
+                        }
+                    }
+                    else
+                    {
+                        $arrWhereStatement[] = $this->_primary_key . " = '" . $this->get($this->_primary_key) . "'";
+                    }
                     $sqlTimestamp = "";
                     $sqlTimestamp .= "UPDATE " . $this->_table_name;
-                    $sqlTimestamp .= " SET " . $this->_timestamp_created_at . " = 'NOW()'";
+                    $sqlTimestamp .= " SET " . $this->_timestamp_created_at . " = NOW()";
                     $sqlTimestamp .= " WHERE " . implode(" AND ", $arrWhereStatement) . " ; ";
-                    $this->_conn->query($sqlTimestamp)
+                    $this->_conn->query($sqlTimestamp);
                 }
                 return true;
             }

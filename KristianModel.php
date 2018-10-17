@@ -14,6 +14,8 @@ class KristianModel
     protected $_relations = array(); // jika primary key ada di dia
     protected $_conn_varname = "conn"; // default: gunakan db connection dari global variable $conn
     protected $_is_incrementing = true; // boolean, true jika id di db adalah AUTO_INCREMENT
+    protected $_timestamp_created_at = null; // string or null, berisi nama column DATETIME/TIMESTAMP yg menyimpan kapan record dibuat
+    protected $_timestamp_updated_at = null; // string or null, berisi nama column DATETIME/TIMESTAMP yg menyimpan kapan record terakhir diubah
 
     // should not be overridden
     protected $_data = array(); // an associative array / dictionary, contains column in db
@@ -242,7 +244,23 @@ class KristianModel
 
 
             $sql .= "UPDATE " . $this->_table_name . " SET " . implode(" , ", $arrSetStatement) . " WHERE " . implode(" AND ", $arrWhereStatement) . " ; ";
-            return $this->_conn->query($sql) == true;
+            if($this->_conn->query($sql) == true)
+            {
+                // update the timestamp column
+                if($this->_timestamp_created_at != null && is_string($_timestamp_created_at))
+                {
+                    $sqlTimestamp = "";
+                    $sqlTimestamp .= "UPDATE " . $this->_table_name;
+                    $sqlTimestamp .= " SET " . $this->_timestamp_updated_at . " = 'NOW()'";
+                    $sqlTimestamp .= " WHERE " . implode(" AND ", $arrWhereStatement) . " ; ";
+                    $this->_conn->query($sqlTimestamp)
+                }
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
         else
         {
@@ -267,11 +285,29 @@ class KristianModel
             $sql .= "INSERT INTO " . $this->_table_name . " (" . implode(" , ", $arrColumnStatement) . ") VALUES (" . implode(" , ", $arrValueStatement) . ") ; ";
             $result = $this->_conn->query($sql);
 
-            if(!is_array($this->_primary_key) && $this->_is_incrementing == true)
+            if($result == true)
             {
-                $this->set($this->_primary_key, $this->_conn->insert_id);
+                // set PK jika AUTO_INCREMENT
+                if(!is_array($this->_primary_key) && $this->_is_incrementing == true)
+                {
+                    $this->set($this->_primary_key, $this->_conn->insert_id);
+                }
+
+                // update the timestamp column
+                if($this->_timestamp_created_at != null && is_string($_timestamp_created_at))
+                {
+                    $sqlTimestamp = "";
+                    $sqlTimestamp .= "UPDATE " . $this->_table_name;
+                    $sqlTimestamp .= " SET " . $this->_timestamp_created_at . " = 'NOW()'";
+                    $sqlTimestamp .= " WHERE " . implode(" AND ", $arrWhereStatement) . " ; ";
+                    $this->_conn->query($sqlTimestamp)
+                }
+                return true;
             }
-            return $result;
+            else
+            {
+                return false;
+            }
         }
     }
     public function delete()

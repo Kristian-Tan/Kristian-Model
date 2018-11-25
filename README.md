@@ -1,5 +1,19 @@
 # Kristian's lightweight ORM
 
+##### Feature
+- Easily support Admin CRUD feature
+- Timestamp
+- One-to-many relationship
+- Support table with composite key (not even Eloquent support it out of the box)
+- Support one primary key with auto increment (cannot have a table with multiple auto increment key, or an auto increment key as composite)
+- Table null value
+
+##### Not Implemented Yet (Might be Supported in the Future)
+- SQL sanitize (by using prepared statement / bind param)
+- Mass update / mass delete / mass insert
+- Join query (workaround: use rawQuery method)
+- Many-to-many relationship with pivot table (workaround: make the pivot table it's own class)
+
 Usage: 
 
 ```php

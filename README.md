@@ -13,6 +13,7 @@ require_once("KristianModel.php");
 
 
 ## // --- defining model ---
+```
 class Mobil extends KristianModel
 {
     protected $_this_class_name = "Mobil";
@@ -39,7 +40,7 @@ class Merk extends KristianModel
     protected $_conn_varname = "connLocal";
     protected $_table_name = "merk";
 }
-
+```
 
 
 
@@ -47,16 +48,18 @@ class Merk extends KristianModel
 ## // --- CRUD operations (create, retrieve, update, delete) ---
 
 ### // model factory
+```
 // model factory is like a static class for that object (being made into a model factory object instead to support lower version of php)
 
 // creating model factory
 $mobilFactory = new Mobil("STATIC");
 $merkFactory = new Merk("STATIC");
-
+```
 
 
 ### // retrieve operation
 
+```
 // retrieve many (all objects)
 $mobilArr = $mobilFactory->all();
 foreach($mobilArr as $mobil) // $arrayOfMobil is an array of Mobil objects
@@ -92,28 +95,33 @@ $mobilArr = $factory->rawQuery("
     ORDER BY m.lebar DESC
     ;
 ");
-
+```
 
 
 ### // create operation
+```
 $mobil = new Mobil();
 $mobil->set("tipe", "GLX-312");
 $mobil->set("idmerk", 1);
 $mobil->save();
+```
 
 
 
 ### // update operation
+```
 $mobil = $mobilFactory->find(2);
 $mobil->set("tipe", "All New GLX-312");
 $mobil->save();
+```
 
 
 
 ### // delete operation
+```
 $mobil = $mobilFactory->find(2);
 $mobil->delete();
-/
+```
 
 
 
@@ -121,6 +129,7 @@ $mobil->delete();
 
 ## // --- relationship ---
 // relationship can only be one-to-many or many-to-one (do not support many-to-many relationship)
+```
 class Mobil extends KristianModel
 {
 	...
@@ -137,13 +146,13 @@ class Merk extends KristianModel
         "mobils" => array("Mobil", "idmerk")
     );
 }
-
+```
 
 
 
 
 ### // getting object of its relationship
-
+```
 // many to one
 $mobil = $mobilFactory->find(2);
 $merk = $mobil->getRelation("merk");
@@ -156,34 +165,37 @@ foreach($arrayOfMobil as $mobil) // $arrayOfMobil is an array of Mobil objects
 {
 	echo $mobil->get("tipe");
 }
+```
 
 ### // setting up many-to-many relationship
 // to support many-to-many relationship, create a new helper model class for that relationship table's tbl1_has_tbl2
 // example: one product can be bought in many orders, one orders may contain many products (assume db = smallnorthwind) 
 //     ==>> then create OrderDetail model!
-// class Order extends KristianModel
-// {
-//     ...
-//     protected $_relations = array(
-//         "order_details" => array("OrderDetail", "OrderID")
-//     );
-// }
-// class OrderDetail extends KristianModel
-// {
-//     ...
-//     protected $_relation = array(
-//         "order" => array("Order", "OrderID"),
-//         "product" => array("Product", "ProductID"),
-//     );
-// }
-// class Product extends KristianModel
-// {
-//     ...
-//     protected $_relations = array(
-//         "order_details" => array("OrderDetail", "ProductID")
-//     );
-// }
 
+```
+class Order extends KristianModel
+{
+    ...
+    protected $_relations = array(
+        "order_details" => array("OrderDetail", "OrderID")
+    );
+}
+class OrderDetail extends KristianModel
+{
+    ...
+    protected $_relation = array(
+        "order" => array("Order", "OrderID"),
+        "product" => array("Product", "ProductID"),
+    );
+}
+class Product extends KristianModel
+{
+    ...
+    protected $_relations = array(
+        "order_details" => array("OrderDetail", "ProductID")
+    );
+}
+```
 
 
 
@@ -194,6 +206,7 @@ foreach($arrayOfMobil as $mobil) // $arrayOfMobil is an array of Mobil objects
 
 
 ## // smallnorthwind example
+```
 $connLocal = new mysqli("localhost", "root", "123", "smallnorthwind");
 
 class Product extends KristianModel
@@ -255,3 +268,4 @@ $product1 = $productFactory->find(1); // get specific product
 //var_dump($product1->get("ProductName")); // see (string) name of product1
 //var_dump($product1->getRelation("category")); // see (object Category) of product1
 //var_dump($product1->getRelations("order_details")); // see (array of object OrderDetail) of product1
+```

@@ -2,7 +2,7 @@
 
 Usage: 
 
-```
+```php
 <?php
 
 ## // --- loading class ---

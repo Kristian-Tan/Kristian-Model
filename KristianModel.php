@@ -233,14 +233,28 @@ class KristianModel
 
             foreach ($this->_data as $key => $value)
             {
-                $arrSetStatement[] = $key . " = '" . $value . "'";
+                if($value != null)
+                {
+                    $arrSetStatement[] = $key . " = '" . $value . "'";
+                }
+                else
+                {
+                    $arrSetStatement[] = $key . " = NULL";
+                }
             }
 
             if(is_array($this->_primary_key))
             {
                 foreach ($this->_primary_key as $key => $value)
                 {
-                    $arrWhereStatement[] = $value . " = '" . $this->get($value) . "'";
+                    if($this->get($value) != null)
+                    {
+                        $arrWhereStatement[] = $value . " = '" . $this->get($value) . "'";
+                    }
+                    else
+                    {
+                        $arrWhereStatement[] = $value . " = NULL";
+                    }
                 }
             }
             else
@@ -291,7 +305,14 @@ class KristianModel
                 else
                 {
                     $arrColumnStatement[] = $key;
-                    $arrValueStatement[] = "'" . $value . "'";
+                    if($value != null)
+                    {
+                        $arrValueStatement[] = "'" . $value . "'";
+                    }
+                    else
+                    {
+                        $arrValueStatement[] = "NULL";
+                    }
                 }
 
             }

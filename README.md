@@ -1,17 +1,17 @@
-Kristian's lightweight ORM
+# Kristian's lightweight ORM
 
-usage: 
+Usage: 
 
 <?php
 
-// --- loading class ---
+## // --- loading class ---
 require_once("KristianModel.php");
 
 
 
 
 
-// --- defining model ---
+## // --- defining model ---
 class Mobil extends KristianModel
 {
     protected $_this_class_name = "Mobil";
@@ -43,9 +43,9 @@ class Merk extends KristianModel
 
 
 
-// --- CRUD operations (create, retrieve, update, delete) ---
+## // --- CRUD operations (create, retrieve, update, delete) ---
 
-// model factory
+### // model factory
 // model factory is like a static class for that object (being made into a model factory object instead to support lower version of php)
 
 // creating model factory
@@ -54,7 +54,7 @@ $merkFactory = new Merk("STATIC");
 
 
 
-// retrieve operation
+### // retrieve operation
 
 // retrieve many (all objects)
 $mobilArr = $mobilFactory->all();
@@ -94,7 +94,7 @@ $mobilArr = $factory->rawQuery("
 
 
 
-// create operation
+### // create operation
 $mobil = new Mobil();
 $mobil->set("tipe", "GLX-312");
 $mobil->set("idmerk", 1);
@@ -102,14 +102,14 @@ $mobil->save();
 
 
 
-// update operation
+### // update operation
 $mobil = $mobilFactory->find(2);
 $mobil->set("tipe", "All New GLX-312");
 $mobil->save();
 
 
 
-// delete operation
+### // delete operation
 $mobil = $mobilFactory->find(2);
 $mobil->delete();
 /
@@ -118,7 +118,7 @@ $mobil->delete();
 
 
 
-// --- relationship ---
+## // --- relationship ---
 // relationship can only be one-to-many or many-to-one (do not support many-to-many relationship)
 class Mobil extends KristianModel
 {
@@ -141,7 +141,7 @@ class Merk extends KristianModel
 
 
 
-// getting object of its relationship
+### // getting object of its relationship
 
 // many to one
 $mobil = $mobilFactory->find(2);
@@ -156,7 +156,7 @@ foreach($arrayOfMobil as $mobil) // $arrayOfMobil is an array of Mobil objects
 	echo $mobil->get("tipe");
 }
 
-// setting up many-to-many relationship
+### // setting up many-to-many relationship
 // to support many-to-many relationship, create a new helper model class for that relationship table's tbl1_has_tbl2
 // example: one product can be bought in many orders, one orders may contain many products (assume db = smallnorthwind) 
 //     ==>> then create OrderDetail model!
@@ -192,7 +192,7 @@ foreach($arrayOfMobil as $mobil) // $arrayOfMobil is an array of Mobil objects
 
 
 
-// smallnorthwind example
+## // smallnorthwind example
 $connLocal = new mysqli("localhost", "root", "123", "smallnorthwind");
 
 class Product extends KristianModel

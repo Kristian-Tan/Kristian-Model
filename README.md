@@ -13,6 +13,9 @@
 - Mass update / mass delete / mass insert
 - Join query (workaround: use rawQuery method)
 - Many-to-many relationship with pivot table (workaround: make the pivot table it's own class)
+- Aggregation function (like SUM, COUNT, AVG)
+- Soft delete (workaround: just set the property of is_deleted to 1, and when searching just include use where 'is_deleted <> 1')
+- Searching with operator other than AND (currently where() method only support AND)
 
 Usage: 
 

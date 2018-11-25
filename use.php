@@ -13,6 +13,11 @@ class Mobil extends KristianModel
     protected $_relation = array(
         "merk" => array("Merk", "idmerk")
     );
+    protected $_table_fields = array(
+        "idmobil", "idmerk", "tipe", "panjang", "lebar", "tinggi",
+        "jarak_sumbu_roda", "radius_putar", "harga_min", "harga_max",
+        "kapasitas_mesin", "kapasitas_tangki", "ukuran_velg", "ukuran_roda"
+    );
 }
 
 class Merk extends KristianModel
@@ -24,10 +29,14 @@ class Merk extends KristianModel
     protected $_relations = array(
         "mobils" => array("Mobil", "idmerk")
     );
+    protected $_table_fields = array(
+        "idmerk", "nama"
+    );
 }
 
 
 $factory = new Mobil("STATIC");
+$factoryMerk = new Merk("STATIC");
 
 // RETRIEVE
 //var_dump($factory->all());
@@ -35,44 +44,53 @@ $factory = new Mobil("STATIC");
 //var_dump($factory->where("tipe", "like", "%1%"));
 //var_dump($factory->where("tipe", "=", "c-31-edit"));
 //var_dump($factory->where("tipe", "like", "%"));
+/*
+var_dump($factory->where(
+    array("tipe", "idmobil"),
+    array("=", "<>"),
+    array("c-31-edit", "20")
+));
+//*/
 
 /*
 // CREATE
 $mobil = new Mobil();
 $mobil->set("idmerk", "1");
-$mobil->set("tipe", "2");
-$mobil->set("panjang", "3");
-$mobil->set("lebar", "4");
-$mobil->set("tinggi", "5");
+$mobil->set("tipe", "BARU SANITIZED BINDED");
+$mobil->set("panjang", "33333");
+$mobil->set("lebar", "444444");
+$mobil->set("tinggi", "5555555");
 $mobil->save();
-*/
+var_dump($mobil);
+//*/
 
 /*
 // UPDATE
-$mobil = Mobil::find(3);
-$mobil->set("tipe", "c-31-edit");
+$mobil = $factory->find(26);
+$mobil->set("tipe", " ' OR 1=1 OR ' ");
 $mobil->save();
-*/
+var_dump($mobil);
+//*/
 
 /*
 // DELETE
-$mobil = Mobil::find(22);
+$mobil = $factory->find(26);
 $mobil->delete();
-*/
+//*/
 
 /*
 // RELATIONSHIP
-$mobil = Mobil::find(3);
+$mobil = $factory->find(3);
 var_dump($mobil);
-var_dump($mobil->getRelation("merk"));
-*/
+var_dump($mobil->getRelation("merk")->get("nama"));
+//*/
 
 /*
 // RELATIONSHIP
-$merk = Merk::find(2);
+$merk = $factoryMerk->find(2);
 var_dump($merk);
 var_dump($merk->getRelations("mobils"));
-*/
+//*/
 
 
 

@@ -1,21 +1,31 @@
 # Kristian's lightweight ORM
 
+Kristian's self made ORM, inspired by Laravel's Eloquent ORM.
+Why? because Laravel eats up inodes so it can't be used in free hosting which limit inodes to 2000 only, also because Eloquent can't have multiple models that have relations but in different connections
+
 ##### Feature
-- Easily support Admin CRUD feature
-- Timestamp
-- One-to-many relationship
+- Easily support Admin CRUD feature (create, retrieve, update, delete)
+- Timestamp (optional, support custom column name)
+- One-to-many relationship (support custom foreign key column name) and it's reverse
 - Support table with composite key (not even Eloquent support it out of the box)
 - Support one primary key with auto increment (cannot have a table with multiple auto increment key, or an auto increment key as composite)
+- Custom primary key name
 - Table null value
+- mysqli bind_param (parameters not sanitized by escaping but by mysqli statement)
+- Retrieve table column names can be shortened by defining it in model (won't need to run SHOW COLUMNS every time)
+- Support using multiple different mysqli connection (ex: table 'cars' is in connection $conn1, table 'brands' is in connection $conn2, but those two models can still have relationship)
+- Only one method to insert and to update (called save())
+- Set data from array / create object from array (ex: $mobil = $factory->createFromArray($_POST))
 
 ##### Not Implemented Yet (Might be Supported in the Future)
-- SQL sanitize (by using prepared statement / bind param)
 - Mass update / mass delete / mass insert
-- Join query (workaround: use rawQuery method)
-- Many-to-many relationship with pivot table (workaround: make the pivot table it's own class)
 - Aggregation function (like SUM, COUNT, AVG)
+- Join query (workaround: use rawQuery method) or any query builder
+- Many-to-many relationship with pivot table (workaround: make the pivot table it's own class)
 - Soft delete (workaround: just set the property of is_deleted to 1, and when searching just include use where 'is_deleted <> 1')
-- Searching with operator other than AND (currently where() method only support AND)
+- Searching with operator other than AND (currently where() method only support 'AND')
+- Using static to perform factory operation (not supported in order to increase the number of php version this ORM support)
+- Method chaining
 
 Usage: 
 

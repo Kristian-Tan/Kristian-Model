@@ -371,11 +371,19 @@ class KristianModel
         }
     }
 
-    public function createFromArray($arrayTarget, $argArrayKeys) // <FACTORY> <STATIC>
+    public function createFromArray($arrayTarget, $argArrayKeys = null) // <FACTORY> <STATIC>
     {
         // membantu ketika ambil data dari POST/GET variables
         $result = new $this->_this_class_name();
-        $result->setDataFromArray($arrayTarget, $argArrayKeys);
+        if($argArrayKeys == null)
+        {
+            $tableFields = $this->getTableFields();
+            $result->setDataFromArray($arrayTarget, null, $tableFields);
+        }
+        else
+        {
+            $result->setDataFromArray($arrayTarget, $argArrayKeys, null);
+        }
         return $result;
 
         // contoh penggunaan:
@@ -389,12 +397,32 @@ class KristianModel
         // $factory = new Mobil("STATIC");
         // $mobil = $factory->createFromArray($_POST, array("idmobil", "idmerk", "tipe"));
         // $mobil->save();
+        //
+        // PERBEDAAN DENGAN createFromArray:
+        // tidak perlu specify key saja yang dimasukkan, nanti akan di-infer sendiri dari kolom di database
     }
-    public function setDataFromArray($arrayTarget, $argArrayKeys) // NOT FACTORY / STATIC, BUT RELATED TO createFromArray
+    public function setDataFromArray($arrayTarget, $argArrayKeys = null, $argTableFields = null) // NOT FACTORY / STATIC, BUT RELATED TO createFromArray
     {
-        foreach ($argArrayKeys as $key => $value)
+        if($argArrayKeys != null && $argTableFields == null)
         {
-            $this->_data[$value] = $arrayTarget[$value];
+            foreach ($argArrayKeys as $key => $value)
+            {
+                $this->_data[$value] = $arrayTarget[$value];
+            }
+        }
+        else if($argArrayKeys == null && $argTableFields != null)
+        {
+            foreach ($arrayTarget as $key => $value)
+            {
+                if( in_array($key, $argTableFields) )
+                {
+                    $this->_data[$key] = $value;
+                }
+            }
+        }
+        else
+        {
+            throw new Exception("Incomplete arguments for method KristianModel.setDataFromArray", 1);
         }
     }
 

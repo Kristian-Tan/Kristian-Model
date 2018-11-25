@@ -13,7 +13,9 @@ require_once("KristianModel.php");
 
 
 ## // --- defining model ---
-```
+```php
+<?php
+
 class Mobil extends KristianModel
 {
     protected $_this_class_name = "Mobil";
@@ -48,7 +50,9 @@ class Merk extends KristianModel
 ## // --- CRUD operations (create, retrieve, update, delete) ---
 
 ### // model factory
-```
+```php
+<?php
+
 // model factory is like a static class for that object (being made into a model factory object instead to support lower version of php)
 
 // creating model factory
@@ -59,7 +63,9 @@ $merkFactory = new Merk("STATIC");
 
 ### // retrieve operation
 
-```
+```php
+<?php
+
 // retrieve many (all objects)
 $mobilArr = $mobilFactory->all();
 foreach($mobilArr as $mobil) // $arrayOfMobil is an array of Mobil objects
@@ -99,7 +105,9 @@ $mobilArr = $factory->rawQuery("
 
 
 ### // create operation
-```
+```php
+<?php
+
 $mobil = new Mobil();
 $mobil->set("tipe", "GLX-312");
 $mobil->set("idmerk", 1);
@@ -109,7 +117,9 @@ $mobil->save();
 
 
 ### // update operation
-```
+```php
+<?php
+
 $mobil = $mobilFactory->find(2);
 $mobil->set("tipe", "All New GLX-312");
 $mobil->save();
@@ -118,7 +128,9 @@ $mobil->save();
 
 
 ### // delete operation
-```
+```php
+<?php
+
 $mobil = $mobilFactory->find(2);
 $mobil->delete();
 ```
@@ -129,10 +141,12 @@ $mobil->delete();
 
 ## // --- relationship ---
 // relationship can only be one-to-many or many-to-one (do not support many-to-many relationship)
-```
+```php
+<?php
+
 class Mobil extends KristianModel
 {
-	...
+	// ...
     protected $_relation = array(
         "merk" => array("Merk", "idmerk")
     );
@@ -141,7 +155,7 @@ class Mobil extends KristianModel
 }
 class Merk extends KristianModel
 {
-	...
+	// ...
     protected $_relations = array(
         "mobils" => array("Mobil", "idmerk")
     );
@@ -152,7 +166,9 @@ class Merk extends KristianModel
 
 
 ### // getting object of its relationship
-```
+```php
+<?php
+
 // many to one
 $mobil = $mobilFactory->find(2);
 $merk = $mobil->getRelation("merk");
@@ -172,17 +188,19 @@ foreach($arrayOfMobil as $mobil) // $arrayOfMobil is an array of Mobil objects
 // example: one product can be bought in many orders, one orders may contain many products (assume db = smallnorthwind) 
 //     ==>> then create OrderDetail model!
 
-```
+```php
+<?php
+
 class Order extends KristianModel
 {
-    ...
+    // ...
     protected $_relations = array(
         "order_details" => array("OrderDetail", "OrderID")
     );
 }
 class OrderDetail extends KristianModel
 {
-    ...
+    // ...
     protected $_relation = array(
         "order" => array("Order", "OrderID"),
         "product" => array("Product", "ProductID"),
@@ -190,7 +208,7 @@ class OrderDetail extends KristianModel
 }
 class Product extends KristianModel
 {
-    ...
+    // ...
     protected $_relations = array(
         "order_details" => array("OrderDetail", "ProductID")
     );
@@ -206,7 +224,9 @@ class Product extends KristianModel
 
 
 ## // smallnorthwind example
-```
+```php
+<?php
+
 $connLocal = new mysqli("localhost", "root", "123", "smallnorthwind");
 
 class Product extends KristianModel

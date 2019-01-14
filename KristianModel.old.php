@@ -1,7 +1,6 @@
 <?php
 
 // addon
-/*
 class iimysqli_result
 {
     public $stmt, $nCols, $arrColsName;
@@ -25,7 +24,6 @@ function iimysqli_stmt_get_result($stmt)
     }
 
     $metadata->free_result();
-    //$metadata->close();
     return $ret;
 }
 
@@ -42,62 +40,9 @@ function iimysqli_result_fetch_array(&$result)
 
     $code .= ");";
     if (!eval($code)) { return null; };
-    if (!mysqli_stmt_fetch($result->stmt))
-    {
-        $result->stmt->free_result();
-        $result->stmt->close();
-        return null;
-    };
+    if (!mysqli_stmt_fetch($result->stmt)) { return null; };
     return $ret;
 }
-*/
-
-function iimysqli_stmt_get_result($stmt)
-{
-    $metadata = $stmt->result_metadata();
-    $ret = array();
-    //if (!$ret) return NULL;
-
-    $ret["nCols"] = $metadata->field_count;
-    $ret["stmt"] = $stmt;
-    $ret["arrColsName"] = array();
-
-    $metadataField = $metadata->fetch_field();
-    while($metadataField != null && $metadataField != false)
-    {
-        $ret["arrColsName"][] = $metadataField->name;
-        $metadataField = $metadata->fetch_field();
-    }
-
-    $metadata->free_result();
-    return $ret;
-}
-
-function iimysqli_result_fetch_array(&$result)
-{
-    $ret = array();
-    $code = "return \$result['stmt']->bind_result( ";
-
-    $codeArr = array();
-    foreach ($result["arrColsName"] as $key => $colName)
-    {
-        $ret[$colName] = null;
-        $codeArr[] = "\$ret['" .$colName ."']";
-    }
-    $code .= implode(", ", $codeArr);
-
-    $code .= ");";
-    //var_dump($code);
-    if (!eval($code)) { return null; };
-    if (!$result["stmt"]->fetch())
-    {
-        $result["stmt"]->free_result();
-        $result["stmt"]->close();
-        return null;
-    };
-    return $ret;
-}
-
 
 function bindPreparedStatement($argConn, $argSqlStringWithQuestionMarks, $argParamsToBeBind) // return stmt?
 {
@@ -245,8 +190,7 @@ class KristianModel
         $return = array();
         $stmt = bindPreparedStatement($this->_conn, $sql, $arrParamsToBeBound); //var_dump($stmt); var_dump($sql); var_dump($arrParamsToBeBound);
 
-        $executeResult = $stmt->execute(); //var_dump($executeResult);
-        $stmt->store_result();
+        $executeResult = $stmt->execute(); //var_dump($executeResult); var_dump($this->_conn->error);
         if($executeResult)
         {
             $res = iimysqli_stmt_get_result($stmt); //var_dump($res);
@@ -386,7 +330,7 @@ class KristianModel
         }
 
         // execute query
-        $results = $this->getMany($sqlWithQuestion, $arrAllParams); //var_dump($sqlWithQuestion); var_dump($arrAllParams);
+        $results = $this->getMany($sqlWithQuestion, $arrAllParams); var_dump($sqlWithQuestion); var_dump($arrAllParams);
         if($results == null || count($results) == 0)
         {
             return null;
@@ -408,28 +352,11 @@ class KristianModel
         if($this->_table_fields == null || !is_array($this->_table_fields) )
         {
             $return = array();
-            //$rs = $this->_conn->query("SHOW COLUMNS FROM " . $this->_table_name);
-
-            $sql = "SHOW COLUMNS FROM " . $this->_table_name;
-            $stmt = bindPreparedStatement($this->_conn, $sql, array());
-            $rs = $stmt->execute();
-            $stmt->store_result();
-            if ($rs)
+            if ($rs = $this->_conn->query("SHOW COLUMNS FROM " . $this->_table_name))
             {
-                /*
                 while ($row = $rs->fetch_assoc())
                 {
                     $return[] = $row["Field"];
-                }
-                return $return;
-                */
-
-                $res = iimysqli_stmt_get_result($stmt);
-                $assocArray = iimysqli_result_fetch_array($res); //var_dump($assocArray);
-                while($assocArray != null)
-                {
-                    $return[] = $assocArray["Field"];
-                    $assocArray = iimysqli_result_fetch_array($res);
                 }
                 return $return;
             }
@@ -608,9 +535,7 @@ class KristianModel
             $stmt = bindPreparedStatement($this->_conn, $sqlWithQuestion, $arrAllParams);
 
             if($stmt == null || $stmt == false) return false;
-            $resultExecute = $stmt->execute();
-            $stmt->store_result();
-            return $resultExecute;
+            return $stmt->execute();
 
         }
         else
@@ -683,9 +608,7 @@ class KristianModel
             $arrInsertClauseValue;
             $stmt = bindPreparedStatement($this->_conn, $sqlWithQuestion, $arrInsertClauseValue);
             if($stmt == null || $stmt == false) return false;
-            $executeResult = $stmt->execute();
-            $stmt->store_result();
-            if($executeResult == false) return false;
+            if($stmt->execute() == false) return false;
 
             $this->_is_inserted = true;
             // set PK jika AUTO_INCREMENT
@@ -750,9 +673,7 @@ class KristianModel
         $stmt = bindPreparedStatement($this->_conn, $sqlWithQuestion, $arrWhereClauseValue);
 
         if($stmt == null || $stmt == false) return false;
-        $executeResult = $stmt->execute();
-        $stmt->store_result();
-        return $executeResult;
+        return $stmt->execute();
     }
 
 

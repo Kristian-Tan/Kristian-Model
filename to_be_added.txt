@@ -4,3 +4,4 @@ note: timestamp column di db harus nullable
 userstamp (field di db: edited_by VARCHAR(45), updated_by VARCHAR(45)
 more complex aggregation function like AVG, SUM, etc (maybe usable by rawQuery method)
 soft delete?
+

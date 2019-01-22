@@ -1,11 +1,56 @@
 <?php
-define("INFO_PRIMARY_KEYS", "PrimaryKeys");
-define("INFO_COLUMNS", "Columns");
-define("INFO_TABLE_NAME", "TableName");
-define("INFO_RELATION", "Relation");
-define("INFO_RELATIONS", "Relations");
-define("INFO_TIMESTAMP_CREATED", "TimestampCreatedAt");
-define("INFO_TIMESTAMP_UPDATED", "TimestampUpdatedAt");
+
+// addon
+/*
+class iimysqli_result
+{
+    public $stmt, $nCols, $arrColsName;
+}
+
+function iimysqli_stmt_get_result($stmt)
+{
+    $metadata = $stmt->result_metadata();
+    $ret = new iimysqli_result();
+    if (!$ret) return NULL;
+
+    $ret->nCols = $metadata->field_count;
+    $ret->stmt = $stmt;
+    $ret->arrColsName = array();
+
+    $metadataField = $metadata->fetch_field();
+    while($metadataField != null && $metadataField != false)
+    {
+        $ret->arrColsName[] = $metadataField->name;
+        $metadataField = $metadata->fetch_field();
+    }
+
+    $metadata->free_result();
+    //$metadata->close();
+    return $ret;
+}
+
+function iimysqli_result_fetch_array(&$result)
+{
+    $ret = array();
+    $code = "return mysqli_stmt_bind_result(\$result->stmt ";
+
+    foreach ($result->arrColsName as $key => $colName)
+    {
+        $ret[$colName] = null;
+        $code .= ", \$ret['" .$colName ."']";
+    }
+
+    $code .= ");";
+    if (!eval($code)) { return null; };
+    if (!mysqli_stmt_fetch($result->stmt))
+    {
+        $result->stmt->free_result();
+        $result->stmt->close();
+        return null;
+    };
+    return $ret;
+}
+*/
 
 function iimysqli_stmt_get_result($stmt)
 {
@@ -60,20 +105,6 @@ function bindPreparedStatement($argConn, $argSqlStringWithQuestionMarks, $argPar
     $stmt = $argConn->prepare($argSqlStringWithQuestionMarks);
     if($stmt == false || $stmt == null) return false;
     $stringParamType = "";
-    for ($i=0; $i < count($argParamsToBeBind); $i++)
-    {
-        if(is_bool($argParamsToBeBind[$i]))
-        {
-            if($argParamsToBeBind[$i] == true)
-            {
-                $argParamsToBeBind[$i] = "1";
-            }
-            else
-            {
-                $argParamsToBeBind[$i] = "0";
-            }
-        }
-    }
     foreach ($argParamsToBeBind as $key => $paramToBeBound)
     {
         /*
@@ -198,7 +229,7 @@ class KristianModel
     // return Object, not overridable
     public function get($argColumnName = null)
     {
-        if( is_null($argColumnName) )
+        if($argColumnName == null)
         {
             return $this->_data;
         }
@@ -214,35 +245,6 @@ class KristianModel
     }
 
 
-    // FACTORY / STATIC METHODS
-    public function getInfo($argInfoType = null)
-    {
-        $info = array();
-        if( !is_array($this->_primary_key) )
-        {
-            $info[INFO_PRIMARY_KEYS] = array($this->_primary_key);
-        }
-        else
-        {
-            $info[INFO_PRIMARY_KEYS] = $this->_primary_key;
-        }
-        $info[INFO_COLUMNS] = $this->getTableFields();
-        $info[INFO_TABLE_NAME] = $this->_table_name;
-        $info[INFO_RELATION] = $this->_relation;
-        $info[INFO_RELATIONS] = $this->_relations;
-        $info[INFO_TIMESTAMP_CREATED] = $this->_timestamp_created_at;
-        $info[INFO_TIMESTAMP_UPDATED] = $this->_timestamp_updated_at;
-
-        if( is_null($argInfoType) )
-        {
-            return $info;
-        }
-        else
-
-        {
-            return $info[$argInfoType];
-        }
-    }
 
     // FACTORY / STATIC METHODS
     private function getMany($sql, $arrParamsToBeBound) // <FACTORY> <STATIC>
@@ -256,7 +258,7 @@ class KristianModel
         {
             $res = iimysqli_stmt_get_result($stmt); //var_dump($res);
             $assocArray = iimysqli_result_fetch_array($res); //var_dump($assocArray);
-            while( !is_null($assocArray) )
+            while($assocArray != null)
             {
                 $item = new $this->_this_class_name();
                 $item->_data = $assocArray; // copy the value of it's select * statement into data
@@ -295,7 +297,7 @@ class KristianModel
     public function all($rawOrderBy=null,$limit=null,$offset=null) // <FACTORY> <STATIC>
     {
         $sql = "SELECT * FROM " . $this->_table_name;
-        if( !is_null($rawOrderBy) )
+        if($rawOrderBy != null)
         {
             $sql .= " ORDER BY " . $rawOrderBy . " ";
         }
@@ -317,7 +319,7 @@ class KristianModel
     // argument can be id (PK) or array if the object has multiple primary keys
     {
         $results = $this->where($this->_primary_key, null, $id); //var_dump($results);
-        if( is_null($results) || count($results) == 0)
+        if($results == null || count($results) == 0)
         {
             return null;
         }
@@ -376,7 +378,7 @@ class KristianModel
     // return array of this object
     {
         // jika operator == null maka diisi "=" semua
-        if( is_null($argOperator) )
+        if($argOperator == null)
         {
             if(is_array($argColumnName))
             {
@@ -419,51 +421,49 @@ class KristianModel
         $sqlWithQuestion = "SELECT * FROM " . $this->_table_name . " WHERE "; // TODO
         $arrAllParams = array(); // TODO
 
-        if( !is_array($argColumnName) && !is_array($argOperator) )
+        if( is_array($argColumnName) && is_array($argOperator) && is_array($argValue) )
         {
-            $argColumnName = array( $argColumnName );
-            $argOperator = array( $argOperator );
-            $argValue = array( $argValue );
-        }
-
-        for ($i = 0; $i < count($argColumnName); $i++)
-        {
-            $currentKey = $argColumnName[$i];
-            $currentOpr = $argOperator[$i];
-            $currentVal = $argValue[$i];
-
-            if( ($currentOpr == "IN" || $currentOpr == "NOT IN") && is_array($currentVal) )
+            for ($i = 0; $i < count($argColumnName); $i++)
             {
-                $sqlWithQuestion .= $currentKey . " " . $currentOpr . " (";
-                $arrQuestionMarksTemp = array();
-                foreach ($currentVal as $key => $currentValItem)
+                $currentKey = $argColumnName[$i];
+                $currentOpr = $argOperator[$i];
+                $currentVal = $argValue[$i];
+
+                if( ($currentOpr == "IN" || $currentOpr == "NOT IN") && is_array($currentVal) )
                 {
-                    if(is_null($currentValItem))
-                    {
-                        $arrQuestionMarksTemp[] = "NULL";
-                    }
-                    else
+                    $sqlWithQuestion .= $currentKey . " " . $currentOpr . " (";
+                    $arrQuestionMarksTemp = array();
+                    foreach ($currentVal as $key => $currentValItem)
                     {
                         $arrQuestionMarksTemp[] = "?";
                         $arrAllParams[] = $currentValItem;
                     }
+                    $sqlWithQuestion .= implode(", ", $arrQuestionMarksTemp) . ") AND ";
                 }
-                $sqlWithQuestion .= implode(", ", $arrQuestionMarksTemp) . ") AND ";
+                else if($currentVal != null)
+                {
+                    $sqlWithQuestion .= $currentKey . " " . $currentOpr . " ? AND ";
+                    $arrAllParams[] = $currentVal;
+                }
+                else
+                {
+                    if($currentOpr == "=") $currentOpr = "IS";
+                    $sqlWithQuestion .= $currentKey . " " . $currentOpr . " NULL AND ";
+                }
             }
-            else if( !is_null($currentVal) )
-            {
-                $sqlWithQuestion .= $currentKey . " " . $currentOpr . " ? AND ";
-                $arrAllParams[] = $currentVal;
-            }
-            else
-            {
-                if($currentOpr == "=") $currentOpr = "IS";
-                $sqlWithQuestion .= $currentKey . " " . $currentOpr . " NULL AND ";
-            }
+            $sqlWithQuestion .= " 1=1 ";
         }
-        $sqlWithQuestion .= " 1=1 ";
+        else if( !is_array($argColumnName) && !is_array($argOperator) && !is_array($argValue) )
+        {
+            $sqlWithQuestion .= $argColumnName . " " . $argOperator . " ? ";
+            $arrAllParams[] = $argValue;
+        }
+        else
+        {
+            throw new Exception("All arguments must be all array or all string!", 1);
+        }
 
-        if( !is_null($rawOrderBy) )
+        if($rawOrderBy != null)
         {
             $sqlWithQuestion .= " ORDER BY " . $rawOrderBy . " ";
         }
@@ -481,7 +481,7 @@ class KristianModel
 
         // execute query
         $results = $this->getMany($sqlWithQuestion, $arrAllParams); //var_dump($sqlWithQuestion); var_dump($arrAllParams);
-        if( is_null($results) || count($results) == 0)
+        if($results == null || count($results) == 0)
         {
             return null;
         }
@@ -499,7 +499,7 @@ class KristianModel
 
     public function getTableFields() // <STATIC>
     {
-        if( is_null($this->_table_fields) || !is_array($this->_table_fields) )
+        if($this->_table_fields == null || !is_array($this->_table_fields) )
         {
             $return = array();
             //$rs = $this->_conn->query("SHOW COLUMNS FROM " . $this->_table_name);
@@ -520,12 +520,11 @@ class KristianModel
 
                 $res = iimysqli_stmt_get_result($stmt);
                 $assocArray = iimysqli_result_fetch_array($res); //var_dump($assocArray);
-                while( !is_null($assocArray) )
+                while($assocArray != null)
                 {
                     $return[] = $assocArray["Field"];
                     $assocArray = iimysqli_result_fetch_array($res);
                 }
-                $this->_table_fields = $return;
                 return $return;
             }
             else
@@ -543,7 +542,7 @@ class KristianModel
     {
         // membantu ketika ambil data dari POST/GET variables
         $result = new $this->_this_class_name();
-        if( is_null($argArrayKeys) )
+        if($argArrayKeys == null)
         {
             $tableFields = $this->getTableFields();
             $result->setDataFromArray($arrayTarget, null, $tableFields);
@@ -571,14 +570,14 @@ class KristianModel
     }
     public function setDataFromArray($arrayTarget, $argArrayKeys = null, $argTableFields = null) // NOT FACTORY / STATIC, BUT RELATED TO createFromArray
     {
-        if( !is_null($argArrayKeys) && is_null($argTableFields) )
+        if($argArrayKeys != null && $argTableFields == null)
         {
             foreach ($argArrayKeys as $key => $value)
             {
                 $this->_data[$value] = $arrayTarget[$value];
             }
         }
-        else if( is_null($argArrayKeys) && !is_null($argTableFields) )
+        else if($argArrayKeys == null && $argTableFields != null)
         {
             foreach ($arrayTarget as $key => $value)
             {
@@ -605,7 +604,7 @@ class KristianModel
         {
             // update
             // set timestamp column
-            if( !is_null($this->_timestamp_updated_at) && is_string($this->_timestamp_updated_at))
+            if($this->_timestamp_updated_at != null && is_string($this->_timestamp_updated_at))
             {
                 $this->set($this->_timestamp_updated_at, date("Y-m-d H:i:s"));
             }
@@ -624,7 +623,7 @@ class KristianModel
             foreach ($this->_data as $key => $value)
             {
                 $arrSetClauseColName[] = $key;
-                if( !is_null($value) )
+                if($value != null)
                 {
                     $arrSetStatement[] = $key . " = '" . $value . "'"; // old
 
@@ -644,7 +643,7 @@ class KristianModel
                 foreach ($this->_primary_key as $key => $value)
                 {
                     $arrWhereClauseColName[] = $value;
-                    if( !is_null($this->get($value)) )
+                    if($this->get($value) != null)
                     {
                         $arrWhereStatement[] = $value . " = '" . $this->get($value) . "'"; // old
 
@@ -702,7 +701,7 @@ class KristianModel
             $sqlWithQuestion = "UPDATE " . $this->_table_name . " SET " . implode(" , ", $arrPreparedSetClause) . " WHERE " . implode(" AND ", $arrPreparedWhereClause);
             $stmt = bindPreparedStatement($this->_conn, $sqlWithQuestion, $arrAllParams);
 
-            if(is_null($stmt) || $stmt == false) return false;
+            if($stmt == null || $stmt == false) return false;
             $resultExecute = $stmt->execute();
             $stmt->store_result();
             return $resultExecute;
@@ -712,7 +711,7 @@ class KristianModel
         {
             // insert
             // set timestamp column
-            if(!is_null($this->_timestamp_created_at) && is_string($this->_timestamp_created_at))
+            if($this->_timestamp_created_at != null && is_string($this->_timestamp_created_at))
             {
                 $this->set($this->_timestamp_created_at, date("Y-m-d H:i:s"));
             }
@@ -736,7 +735,7 @@ class KristianModel
                     $arrColumnStatement[] = $key; // old
 
                     $arrInsertClauseColName[] = $key;
-                    if(!is_null($value))
+                    if($value != null)
                     {
                         $arrValueStatement[] = "'" . $value . "'"; // old
 
@@ -777,7 +776,7 @@ class KristianModel
             $sqlWithQuestion = "INSERT INTO " . $this->_table_name . " (" . implode(" , ", $arrInsertClauseColName) . ") VALUES (" . implode(" , ", $arrInsertClauseQuestionMarks) . ") ";
             $arrInsertClauseValue;
             $stmt = bindPreparedStatement($this->_conn, $sqlWithQuestion, $arrInsertClauseValue);
-            if(is_null($stmt) || $stmt == false) return false;
+            if($stmt == null || $stmt == false) return false;
             $executeResult = $stmt->execute();
             $stmt->store_result();
             if($executeResult == false) return false;
@@ -807,7 +806,7 @@ class KristianModel
             foreach ($this->_primary_key as $key => $value)
             {
                 $arrWhereClauseColName[] = $value;
-                if(!is_null($this->get($value)))
+                if($this->get($value) != null)
                 {
                     $arrWhereStatement[] = $value . " = '" . $this->get($value) . "'"; // old
 
@@ -844,7 +843,7 @@ class KristianModel
         $sqlWithQuestion = "DELETE FROM " . $this->_table_name . " WHERE " . implode(" AND ", $arrPreparedWhereClause);
         $stmt = bindPreparedStatement($this->_conn, $sqlWithQuestion, $arrWhereClauseValue);
 
-        if(is_null($stmt) || $stmt == false) return false;
+        if($stmt == null || $stmt == false) return false;
         $executeResult = $stmt->execute();
         $stmt->store_result();
         return $executeResult;

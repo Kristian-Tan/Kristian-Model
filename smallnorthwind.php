@@ -65,9 +65,22 @@ $orderDetailFactory = new OrderDetail("STATIC");
 //var_dump($orderFactory->all());
 //var_dump($orderDetailFactory->all());
 
-$product1 = $productFactory->find(1);
+//$product1 = $productFactory->find(1);
 
 //var_dump($product1);
 //var_dump($product1->get("ProductName"));
 //var_dump($product1->getRelation("category"));
 //var_dump($product1->getRelations("order_details"));
+
+
+//$products = $productFactory->where_i( array("ProductID","IN",array(1,2,3) ));
+/*
+$products = $productFactory->where_i(array(
+    array("ProductID","IN",array(1,2,3) ),
+    array("ProductName","LIKE","%ch%")
+));
+*/
+$products = $productFactory->where_i( array("ProductID","IN",array(1,2,true,false,null) ));
+foreach ($products as $key => $value) {
+    var_dump($value->get());
+}

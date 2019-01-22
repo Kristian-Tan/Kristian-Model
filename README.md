@@ -16,16 +16,23 @@ Why? because Laravel eats up inodes so it can't be used in free hosting which li
 - Support using multiple different mysqli connection (ex: table 'cars' is in connection $conn1, table 'brands' is in connection $conn2, but those two models can still have relationship)
 - Only one method to insert and to update (called save())
 - Set data from array / create object from array (ex: $mobil = $factory->createFromArray($_POST))
+- LIMIT clause
+- ORDER BY clause
+- IN / NOT IN operator
 
 ##### Not Implemented Yet (Might be Supported in the Future)
 - Mass update / mass delete / mass insert
 - Aggregation function (like SUM, COUNT, AVG)
+- Searching with operator other than AND (currently where() method only support 'AND')
+
+##### Will not be implemented
 - Join query (workaround: use rawQuery method) or any query builder
 - Many-to-many relationship with pivot table (workaround: make the pivot table it's own class)
 - Soft delete (workaround: just set the property of is_deleted to 1, and when searching just include use where 'is_deleted <> 1')
-- Searching with operator other than AND (currently where() method only support 'AND')
+- Method chaining (gimmick)
 - Using static to perform factory operation (not supported in order to increase the number of php version this ORM support)
-- Method chaining
+
+
 
 Usage: 
 
@@ -128,6 +135,13 @@ $mobilArr = $factory->rawQuery("
     ORDER BY m.lebar DESC
     ;
 ");
+
+// more programmer friendly way to call where() method for multiple parameters:
+$mobilArr = $factory->where([
+    ["tipe", "<>", "NewType"],   // column, operator, value
+    ["idmerk", "1"],   // operator set to "="
+	["tipe", "NOT IN", ["Tipe1","Tipe2","Tipe3"] ]   // supply array of strings for IN operator
+]);
 ```
 
 

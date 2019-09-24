@@ -160,6 +160,7 @@ class KristianModel
 
     // should not be overridden
     protected $_data = array(); // an associative array / dictionary, contains column in db
+    protected $_data_old = array(); // an associative array / dictionary, contains column in db BEFORE EDITED
     protected $_is_inserted;// = false;
     protected $_conn = null; // db connection (dari new mysqli($host, $user, $pass, $dbname))
 
@@ -205,6 +206,17 @@ class KristianModel
         else
         {
             return $this->_data[$argColumnName];
+        }
+    }
+    private function getOldData($argColumnName = null)
+    {
+        if( is_null($argColumnName) )
+        {
+            return $this->_data_old;
+        }
+        else
+        {
+            return $this->_data_old[$argColumnName];
         }
     }
     // void, not overridable
@@ -260,6 +272,7 @@ class KristianModel
             {
                 $item = new $this->_this_class_name();
                 $item->_data = $assocArray; // copy the value of it's select * statement into data
+                $item->_data_old = $assocArray;
                 $item->_is_inserted = true;
                 $return[] = $item;
                 //
@@ -272,24 +285,6 @@ class KristianModel
             return null;
         }
 
-        /*
-        $rs = $this->_conn->query($sql);
-        if ($rs)
-        {
-            while ($row = $rs->fetch_assoc())
-            {
-                $item = new $this->_this_class_name();
-                $item->_data = $row; // copy the value of it's select * statement into data
-                $item->_is_inserted = true;
-                $return[] = $item;
-            }
-            return $return;
-        }
-        else
-        {
-            return null;
-        }
-        */
     }
 
     public function all($rawOrderBy=null,$limit=null,$offset=null) // <FACTORY> <STATIC>
@@ -392,30 +387,6 @@ class KristianModel
             }
         }
 
-        // build query
-        /*
-        $sql = "SELECT * FROM " . $this->_table_name . " WHERE ";
-
-        if( is_array($argColumnName) && is_array($argOperator) && is_array($argValue) )
-        {
-            for ($i = 0; $i < count($this->_primary_key); $i++)
-            {
-                $currentKey = $argColumnName[$i];
-                $currentOpr = $argOperator[$i];
-                $currentVal = $argValue[$i];
-
-                $sql .= $currentKey . " " . $currentOpr . " " . "'" . $this->_conn->real_escape_string($currentVal) . "' AND ";
-            }
-            $sql .= " 1=1 ";
-        }
-        else if( !is_array($argColumnName) && !is_array($argOperator) && !is_array($argValue) )
-        {
-            $sql .= $argColumnName . " " . $argOperator . " " . "'" . $this->_conn->real_escape_string($argValue) . "' ";
-        }
-
-        $sql .= " ; ";
-        */
-
         $sqlWithQuestion = "SELECT * FROM " . $this->_table_name . " WHERE "; // TODO
         $arrAllParams = array(); // TODO
 
@@ -497,6 +468,12 @@ class KristianModel
         return $this->getMany($rawSql, array());
     }
 
+    public function rawNonQuery($rawSql) // <FACTORY> <STATIC>
+    {
+        $stmt = bindPreparedStatement($this->_conn, $rawSql, array());
+        return $stmt->execute();
+    }
+
     public function getTableFields() // <STATIC>
     {
         if( is_null($this->_table_fields) || !is_array($this->_table_fields) )
@@ -510,14 +487,6 @@ class KristianModel
             $stmt->store_result();
             if ($rs)
             {
-                /*
-                while ($row = $rs->fetch_assoc())
-                {
-                    $return[] = $row["Field"];
-                }
-                return $return;
-                */
-
                 $res = iimysqli_stmt_get_result($stmt);
                 $assocArray = iimysqli_result_fetch_array($res); //var_dump($assocArray);
                 while( !is_null($assocArray) )
@@ -610,9 +579,6 @@ class KristianModel
                 $this->set($this->_timestamp_updated_at, date("Y-m-d H:i:s"));
             }
 
-            $arrSetStatement = array(); // contoh isi: ["col1 = 'val1'", "col2 = 'val2'", "col3 = NULL"]
-            $arrWhereStatement = array(); // contoh isi: ["colPK1 = 'valPK1'", "colPK2 = 'valPK2'", "colPK3 = 'valPK3'"]
-
             // new
             $arrSetClauseColName = array(); // contoh isi: ['col1', 'col2', 'col3'];
             $arrSetClauseQuestionMarks = array(); // contoh isi: ['?', '?', 'NULL']; // tujuannya mengakomodasi jika ada yang null, nanti ini akan di implode
@@ -626,15 +592,11 @@ class KristianModel
                 $arrSetClauseColName[] = $key;
                 if( !is_null($value) )
                 {
-                    $arrSetStatement[] = $key . " = '" . $value . "'"; // old
-
                     $arrSetClauseQuestionMarks[] = "?";
                     $arrSetClauseValue[] = $value;
                 }
                 else
                 {
-                    $arrSetStatement[] = $key . " = NULL"; // old
-
                     $arrSetClauseQuestionMarks[] = "NULL";
                 }
             }
@@ -644,45 +606,30 @@ class KristianModel
                 foreach ($this->_primary_key as $key => $value)
                 {
                     $arrWhereClauseColName[] = $value;
-                    if( !is_null($this->get($value)) )
+                    if( !is_null($this->getOldData($value)) )
                     {
-                        $arrWhereStatement[] = $value . " = '" . $this->get($value) . "'"; // old
-
                         $arrWhereClauseQuestionMarks[] = "?";
-                        $arrWhereClauseValue[] = $this->get($value);
+                        $arrWhereClauseValue[] = $this->getOldData($value);
                     }
                     else
                     {
-                        $arrWhereStatement[] = $value . " = NULL"; // old
-
                         $arrWhereClauseQuestionMarks[] = "NULL";
                     }
                 }
             }
             else
             {
-                $arrWhereStatement[] = $this->_primary_key . " = '" . $this->get($this->_primary_key) . "'";
-
                 $arrWhereClauseColName[] = $this->_primary_key;
                 $arrWhereClauseQuestionMarks[] = "?";
-                $arrWhereClauseValue[] = $this->get($this->_primary_key);
+                $arrWhereClauseValue[] = $this->getOldData($this->_primary_key);
             }
 
-
-            //$sql .= "UPDATE " . $this->_table_name . " SET " . implode(" , ", $arrSetStatement) . " WHERE " . implode(" AND ", $arrWhereStatement) . " ; ";
-            //$queryResult = $this->_conn->query($sql) == true;
-            //if($queryResult == true)
-
-            //$arrSetClauseColName;
-            //$arrSetClauseQuestionMarks;
             $arrPreparedSetClause = array();
             for ($i = 0; $i < count($arrSetClauseColName); $i++)
             {
                 $arrPreparedSetClause[] = $arrSetClauseColName[$i] . " = " . $arrSetClauseQuestionMarks[$i];
             }
 
-            //$arrWhereClauseColName;
-            //$arrWhereClauseQuestionMarks;
             $arrPreparedWhereClause = array();
             for ($i = 0; $i < count($arrWhereClauseColName); $i++)
             {
@@ -705,6 +652,10 @@ class KristianModel
             if(is_null($stmt) || $stmt == false) return false;
             $resultExecute = $stmt->execute();
             $stmt->store_result();
+            if($resultExecute)
+            {
+                $this->_data_old = $this->_data;
+            }
             return $resultExecute;
 
         }
@@ -753,49 +704,29 @@ class KristianModel
 
             }
 
-            /*
-            $sql .= "INSERT INTO " . $this->_table_name . " (" . implode(" , ", $arrColumnStatement) . ") VALUES (" . implode(" , ", $arrValueStatement) . ") ; ";
-            $result = $this->_conn->query($sql);
-
-            if($result == true)
-            {
-                $this->_is_inserted = true;
-
-                // set PK jika AUTO_INCREMENT
-                if(!is_array($this->_primary_key) && $this->_is_incrementing == true)
-                {
-                    $this->set($this->_primary_key, $this->_conn->insert_id);
-                }
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-            */
-
             $sqlWithQuestion = "INSERT INTO " . $this->_table_name . " (" . implode(" , ", $arrInsertClauseColName) . ") VALUES (" . implode(" , ", $arrInsertClauseQuestionMarks) . ") ";
             $arrInsertClauseValue;
             $stmt = bindPreparedStatement($this->_conn, $sqlWithQuestion, $arrInsertClauseValue);
             if(is_null($stmt) || $stmt == false) return false;
             $executeResult = $stmt->execute();
             $stmt->store_result();
-            if($executeResult == false) return false;
-
-            $this->_is_inserted = true;
-            // set PK jika AUTO_INCREMENT
-            if(!is_array($this->_primary_key) && $this->_is_incrementing == true)
+            if($executeResult)
             {
-                $this->set($this->_primary_key, $stmt->insert_id);
+                $this->_is_inserted = true;
+                // set PK jika AUTO_INCREMENT
+                if(!is_array($this->_primary_key) && $this->_is_incrementing == true)
+                {
+                    $this->set($this->_primary_key, $stmt->insert_id);
+                }
+                $this->_data_old = $this->_data;
             }
+            return $executeResult;
         }
     }
     public function delete()
     {
         // delete dari db
         $sql = "";
-
-        $arrWhereStatement = array();
 
         // new
         $arrWhereClauseColName = array();
@@ -809,32 +740,21 @@ class KristianModel
                 $arrWhereClauseColName[] = $value;
                 if(!is_null($this->get($value)))
                 {
-                    $arrWhereStatement[] = $value . " = '" . $this->get($value) . "'"; // old
-
                     $arrWhereClauseQuestionMarks[] = "?";
                     $arrWhereClauseValue[] = $this->get($value);
                 }
                 else
                 {
-                    $arrWhereStatement[] = $value . " = NULL"; // old
-
                     $arrWhereClauseQuestionMarks[] = "NULL";
                 }
             }
         }
         else
         {
-            $arrWhereStatement[] = $this->_primary_key . " = '" . $this->get($this->_primary_key) . "'"; // old
-
             $arrWhereClauseColName[] = $this->_primary_key;
             $arrWhereClauseQuestionMarks[] = "?";
             $arrWhereClauseValue[] = $this->get($this->_primary_key);
         }
-
-        /*
-        $sql .= "DELETE FROM " . $this->_table_name . " WHERE " . implode(" AND ", $arrWhereStatement) . " ; " ; // old
-        return $this->_conn->query($sql) == true; // old
-        */
 
         $arrPreparedWhereClause = array();
         for ($i = 0; $i < count($arrWhereClauseColName); $i++)

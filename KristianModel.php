@@ -190,14 +190,13 @@ class KristianModel
                 $this->_data[$value] = null;
             }
         }
-
     }
 
 
 
     // GETTER / SETTER METHODS
     // return Object, not overridable
-    public function get($argColumnName = null)
+    public function get($argColumnName = null) // tested
     {
         if( is_null($argColumnName) )
         {
@@ -220,7 +219,7 @@ class KristianModel
         }
     }
     // void, not overridable
-    public function set($argColumnName, $argValue)
+    public function set($argColumnName, $argValue) // tested
     {
         $this->_data[$argColumnName] = $argValue;
     }
@@ -287,7 +286,7 @@ class KristianModel
 
     }
 
-    public function all($rawOrderBy=null,$limit=null,$offset=null) // <FACTORY> <STATIC>
+    public function all($rawOrderBy=null,$limit=null,$offset=null) // <FACTORY> <STATIC> // tested
     {
         $sql = "SELECT * FROM " . $this->_table_name;
         if( !is_null($rawOrderBy) )
@@ -308,7 +307,7 @@ class KristianModel
         return $this->getMany($sql, array());
     }
 
-    public function find($id) // <FACTORY> <STATIC>
+    public function find($id) // <FACTORY> <STATIC> // tested
     // argument can be id (PK) or array if the object has multiple primary keys
     {
         $results = $this->where($this->_primary_key, null, $id); //var_dump($results);
@@ -326,11 +325,11 @@ class KristianModel
     // $argFilters bisa berisi: ["column", "value"]  // dianggap operator "="
     // $argFilters bisa berisi: array( ["column1", ">=", "value1"], ["column2", "=", "value2"], ["column3", "<>", "value3"] )
     // $argFilters bisa berisi: ["column", "IN", ["value1","value2","value3"] ]
-    public function where_i($argFilters, $rawOrderBy=null,$limit=null,$offset=null)
+    public function where_i($argFilters, $rawOrderBy=null,$limit=null,$offset=null) // tested
     {
-        if( !is_array($argFilters) )
+        if( !is_array($argFilters) ) // ex: $argFilters = "WHERE col=1"
         {
-            throw new Exception("KristianModel error: $argFilters harus berisi array! lihat manual / README.md", 1);
+            throw new Exception("KristianModel error: \$argFilters harus berisi array! lihat manual / README.md", 1);
         }
         if( !is_array($argFilters[0]) )
         {
@@ -367,7 +366,7 @@ class KristianModel
         }
     }
 
-    public function where($argColumnName, $argOperator = null, $argValue, $rawOrderBy=null,$limit=null,$offset=null) // <FACTORY> <STATIC>
+    public function where($argColumnName, $argOperator = null, $argValue, $rawOrderBy=null,$limit=null,$offset=null) // <FACTORY> <STATIC> // tested
     // return array of this object
     {
         // jika operator == null maka diisi "=" semua
@@ -463,18 +462,18 @@ class KristianModel
 
     }
 
-    public function rawQuery($rawSql) // <FACTORY> <STATIC>
+    public function rawQuery($rawSql) // <FACTORY> <STATIC> // tested
     {
         return $this->getMany($rawSql, array());
     }
 
-    public function rawNonQuery($rawSql) // <FACTORY> <STATIC>
+    public function rawNonQuery($rawSql) // <FACTORY> <STATIC> // tested
     {
         $stmt = bindPreparedStatement($this->_conn, $rawSql, array());
         return $stmt->execute();
     }
 
-    public function getTableFields() // <STATIC>
+    public function getTableFields() // <STATIC> // tested
     {
         if( is_null($this->_table_fields) || !is_array($this->_table_fields) )
         {
@@ -508,7 +507,7 @@ class KristianModel
         }
     }
 
-    public function createFromArray($arrayTarget, $argArrayKeys = null) // <FACTORY> <STATIC>
+    public function createFromArray($arrayTarget, $argArrayKeys = null) // <FACTORY> <STATIC> // tested
     {
         // membantu ketika ambil data dari POST/GET variables
         $result = new $this->_this_class_name();
@@ -538,7 +537,7 @@ class KristianModel
         // PERBEDAAN DENGAN createFromArray:
         // tidak perlu specify key saja yang dimasukkan, nanti akan di-infer sendiri dari kolom di database
     }
-    public function setDataFromArray($arrayTarget, $argArrayKeys = null, $argTableFields = null) // NOT FACTORY / STATIC, BUT RELATED TO createFromArray
+    public function setDataFromArray($arrayTarget, $argArrayKeys = null, $argTableFields = null) // NOT FACTORY / STATIC, BUT RELATED TO createFromArray // tested
     {
         if( !is_null($argArrayKeys) && is_null($argTableFields) )
         {
@@ -566,7 +565,7 @@ class KristianModel
 
 
     // DATABASE OPERATION METHODS
-    public function save()
+    public function save() // tested
     {
         // jika data belum ada di db maka insert, jika sudah ada maka update
         $sql = "";
@@ -668,9 +667,6 @@ class KristianModel
                 $this->set($this->_timestamp_created_at, date("Y-m-d H:i:s"));
             }
 
-            $arrColumnStatement = array();
-            $arrValueStatement = array();
-
             // new
             $arrInsertClauseColName = array(); // contoh isi: ['col1', 'col2', 'col3'];
             $arrInsertClauseQuestionMarks = array(); // contoh isi: ['?', '?', 'NULL']; // tujuannya mengakomodasi jika ada yang null, nanti ini akan di implode
@@ -678,26 +674,25 @@ class KristianModel
 
             foreach ($this->_data as $key => $value)
             {
-                if($this->_is_incrementing && $key == $this->_primary_key)
+                if(
+                    $this->_is_incrementing &&
+                    $key == $this->_primary_key &&
+                    !is_array($this->_primary_key) &&
+                    empty($this->_data[$this->_primary_key])
+                )
                 {
                     // do not add it to query
                 }
                 else
                 {
-                    $arrColumnStatement[] = $key; // old
-
                     $arrInsertClauseColName[] = $key;
                     if(!is_null($value))
                     {
-                        $arrValueStatement[] = "'" . $value . "'"; // old
-
                         $arrInsertClauseQuestionMarks[] = "?";
                         $arrInsertClauseValue[] = $value;
                     }
                     else
                     {
-                        $arrValueStatement[] = "NULL"; // old
-
                         $arrInsertClauseQuestionMarks[] = "NULL";
                     }
                 }
@@ -723,7 +718,7 @@ class KristianModel
             return $executeResult;
         }
     }
-    public function delete()
+    public function delete() // tested
     {
         // delete dari db
         $sql = "";
@@ -773,7 +768,7 @@ class KristianModel
 
 
     // RELATIONSHIPS METHOD
-    public function getRelation($argRelationName)
+    public function getRelation($argRelationName) // tested
     {
         //
         $classNameObject = $this->_relation[$argRelationName][0];
@@ -795,7 +790,7 @@ class KristianModel
         $result = $factory->find($id);
         return $result;
     }
-    public function getRelations($argRelationsName)
+    public function getRelations($argRelationsName) // tested
     {
         $classNameObject = $this->_relations[$argRelationsName][0];
         $foreignKeyName = $this->_relations[$argRelationsName][1]; // bisa singular bisa array

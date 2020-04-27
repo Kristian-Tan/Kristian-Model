@@ -6,7 +6,7 @@
 		
 		<env name="MYSQL_HOST" value="127.0.0.1"/>
 		<env name="MYSQL_USER" value="root"/>
-		<env name="MYSQL_PASS" value="123"/>
+		<env name="MYSQL_PASS" value="my-secret-pw"/>
 		
 		<env name="SELECT_TEST_is_setup_database" value="on"/>
 		<env name="SELECT_TEST_is_teardown_database" value="on"/>

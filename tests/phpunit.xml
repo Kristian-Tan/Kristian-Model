@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit>
+    <php>
+        <server name="APP_ENV" value="testing"/>
+        <server name="BCRYPT_ROUNDS" value="4"/>
+		
+		<env name="MYSQL_HOST" value="localhost"/>
+		<env name="MYSQL_USER" value="root"/>
+		<env name="MYSQL_PASS" value="123"/>
+		
+		<env name="SELECT_TEST_is_setup_database" value="off"/>
+		<env name="SELECT_TEST_is_teardown_database" value="off"/>
+		<env name="SELECT_TEST_dbname" value="test_kristian_orm"/>
+		<env name="SAVE_TEST_is_setup_database_source" value="off"/>
+		<env name="SAVE_TEST_is_setup_database" value="on"/>
+		<env name="SAVE_TEST_is_teardown_database" value="off"/>
+		<env name="SAVE_TEST_dbname_source" value="northwind"/>
+		<env name="SAVE_TEST_dbname" value="test_kristian_orm_save"/>
+    </php>
+</phpunit>

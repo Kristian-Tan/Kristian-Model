@@ -11,6 +11,9 @@ use PHPUnit\Framework\TestCase;
 
 class UnitTest extends TestCase
 {
-
+    public function testNothing()
+    {
+        $this->assertEquals(1,1);
+    }
 }
 

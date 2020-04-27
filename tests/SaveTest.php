@@ -18,12 +18,47 @@ class SaveTest extends TestCase
     protected static $dbNameSource = "northwind";
     protected static $dbName = "test_kristian_orm_save";
 
-    protected static $is_setup_database_source = false;
+    protected static $is_setup_database_source = true;
     protected static $is_setup_database = true;
-    protected static $is_teardown_database = false;
+    protected static $is_teardown_database = true;
 
     public static function setUpBeforeClass(): void
     {
+        if(!empty(getenv("MYSQL_HOST"))) SaveTest::$connHost = getenv("MYSQL_HOST");
+        if(!empty(getenv("MYSQL_USER"))) SaveTest::$connUser = getenv("MYSQL_USER");
+        if(!empty(getenv("MYSQL_PASS"))) SaveTest::$connPass = getenv("MYSQL_PASS");
+
+        if(!empty(getenv("SAVE_TEST_dbname_source"))) SaveTest::$dbNameSource = getenv("SAVE_TEST_dbname_source");
+        if(!empty(getenv("SAVE_TEST_dbname"))) SaveTest::$dbName = getenv("SAVE_TEST_dbname");
+
+        if(!empty(getenv("SAVE_TEST_is_setup_database")))
+        {
+            $value = getenv("SAVE_TEST_is_setup_database");
+            if(empty($value) || $value == "false" || $value == "off" || $value == "0" || $value == false)
+                SaveTest::$is_setup_database = false;
+            else
+                SaveTest::$is_setup_database = true;
+        }
+        if(!empty(getenv("SAVE_TEST_is_setup_database_source")))
+        {
+            $value = getenv("SAVE_TEST_is_setup_database_source");
+            if(empty($value) || $value == "false" || $value == "off" || $value == "0" || $value == false)
+                SaveTest::$is_setup_database_source = false;
+            else
+                SaveTest::$is_setup_database_source = true;
+        }
+        if(!empty(getenv("SAVE_TEST_is_teardown_database")))
+        {
+            $value = getenv("SAVE_TEST_is_teardown_database");
+            if(empty($value) || $value == "false" || $value == "off" || $value == "0" || $value == false)
+                SaveTest::$is_teardown_database = false;
+            else
+                SaveTest::$is_teardown_database = true;
+        }
+
+        //throw new \Exception("Error Processing Request", 1);
+
+
         if(SaveTest::$is_setup_database_source)
         {
             fwrite(STDOUT, "START Importing original database \n");
@@ -219,7 +254,7 @@ class SaveTest extends TestCase
     {
         $factorySupplier = new Supplier("STATIC");
         $arrSupplier = $factorySupplier->where("id", ">", "20");
-        $this->assertNotEmpty($supplier1);
+        $this->assertNotEmpty($arrSupplier);
 
         foreach ($arrSupplier as $key => $supplier)
         {

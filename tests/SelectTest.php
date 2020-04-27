@@ -22,6 +22,32 @@ class SelectTest extends TestCase
 
     public static function setUpBeforeClass(): void
     {
+        if(!empty(getenv("MYSQL_HOST"))) SelectTest::$connHost = getenv("MYSQL_HOST");
+        if(!empty(getenv("MYSQL_USER"))) SelectTest::$connUser = getenv("MYSQL_USER");
+        if(!empty(getenv("MYSQL_PASS"))) SelectTest::$connPass = getenv("MYSQL_PASS");
+
+        if(!empty(getenv("SELECT_TEST_dbname"))) SelectTest::$dbName = getenv("SELECT_TEST_dbname");
+
+        if(!empty(getenv("SELECT_TEST_is_setup_database")))
+        {
+            $value = getenv("SELECT_TEST_is_setup_database");
+            if(empty($value) || $value == "false" || $value == "off" || $value == "0" || $value == false)
+                SelectTest::$is_setup_database = false;
+            else
+                SelectTest::$is_setup_database = true;
+        }
+        if(!empty(getenv("SELECT_TEST_is_teardown_database")))
+        {
+            $value = getenv("SELECT_TEST_is_teardown_database");
+            if(empty($value) || $value == "false" || $value == "off" || $value == "0" || $value == false)
+                SelectTest::$is_teardown_database = false;
+            else
+                SelectTest::$is_teardown_database = true;
+        }
+
+        //throw new \Exception("Error Processing Request", 1);
+
+
         if(SelectTest::$is_setup_database)
         {
             fwrite(STDOUT, "START Creating database \n");

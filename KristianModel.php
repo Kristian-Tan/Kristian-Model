@@ -58,7 +58,11 @@ function bindPreparedStatement($argConn, $argSqlStringWithQuestionMarks, $argPar
 {
     //var_dump($argSqlStringWithQuestionMarks); var_dump($argParamsToBeBind); echo $argParamsToBeBind[0];
     $stmt = $argConn->prepare($argSqlStringWithQuestionMarks);
-    if($stmt == false || $stmt == null) return false;
+    if($stmt == false || $stmt == null)
+    {
+        $this->error = $stmt->error;
+        return false;
+    }
     $stringParamType = "";
     for ($i=0; $i < count($argParamsToBeBind); $i++)
     {
@@ -163,6 +167,8 @@ class KristianModel
     protected $_data_old = array(); // an associative array / dictionary, contains column in db BEFORE EDITED
     protected $_is_inserted;// = false;
     protected $_conn = null; // db connection (dari new mysqli($host, $user, $pass, $dbname))
+
+    public $error = "";
 
 
 
@@ -470,6 +476,8 @@ class KristianModel
     public function rawNonQuery($rawSql) // <FACTORY> <STATIC> // tested
     {
         $stmt = bindPreparedStatement($this->_conn, $rawSql, array());
+        if(!empty($this->_conn->error)) $this->error = $this->_conn->error;
+        if(!empty($stmt->error)) $this->error = $stmt->error;
         return $stmt->execute();
     }
 
@@ -648,13 +656,19 @@ class KristianModel
             $sqlWithQuestion = "UPDATE " . $this->_table_name . " SET " . implode(" , ", $arrPreparedSetClause) . " WHERE " . implode(" AND ", $arrPreparedWhereClause);
             $stmt = bindPreparedStatement($this->_conn, $sqlWithQuestion, $arrAllParams);
 
-            if(is_null($stmt) || $stmt == false) return false;
+            if(is_null($stmt) || $stmt == false)
+            {
+                $this->error = $stmt->error;
+                return false;
+            }
             $resultExecute = $stmt->execute();
             $stmt->store_result();
             if($resultExecute)
             {
                 $this->_data_old = $this->_data;
             }
+            if(!empty($this->_conn->error)) $this->error = $this->_conn->error;
+            if(!empty($stmt->error)) $this->error = $stmt->error;
             return $resultExecute;
 
         }
@@ -702,7 +716,11 @@ class KristianModel
             $sqlWithQuestion = "INSERT INTO " . $this->_table_name . " (" . implode(" , ", $arrInsertClauseColName) . ") VALUES (" . implode(" , ", $arrInsertClauseQuestionMarks) . ") ";
             $arrInsertClauseValue;
             $stmt = bindPreparedStatement($this->_conn, $sqlWithQuestion, $arrInsertClauseValue);
-            if(is_null($stmt) || $stmt == false) return false;
+            if(is_null($stmt) || $stmt == false)
+            {
+                $this->error = $stmt->error;
+                return false;
+            }
             $executeResult = $stmt->execute();
             $stmt->store_result();
             if($executeResult)
@@ -712,9 +730,15 @@ class KristianModel
                 if(!is_array($this->_primary_key) && $this->_is_incrementing == true)
                 {
                     $this->set($this->_primary_key, $stmt->insert_id);
+                    if(empty($stmt->insert_id)) throw new Exception("statement insert_id empty!", 1);
+                    else var_dump($stmt->insert_id);
+
+                    var_dump($this->get($this->_primary_key));
+
                 }
                 $this->_data_old = $this->_data;
             }
+            else $this->error = $stmt->error;
             return $executeResult;
         }
     }
@@ -759,9 +783,15 @@ class KristianModel
         $sqlWithQuestion = "DELETE FROM " . $this->_table_name . " WHERE " . implode(" AND ", $arrPreparedWhereClause);
         $stmt = bindPreparedStatement($this->_conn, $sqlWithQuestion, $arrWhereClauseValue);
 
-        if(is_null($stmt) || $stmt == false) return false;
+        if(is_null($stmt) || $stmt == false)
+        {
+            $this->error = $stmt->error;
+            return false;
+        }
         $executeResult = $stmt->execute();
         $stmt->store_result();
+        if(!empty($this->_conn->error)) $this->error = $this->_conn->error;
+        if(!empty($stmt->error)) $this->error = $stmt->error;
         return $executeResult;
     }
 

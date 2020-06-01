@@ -730,11 +730,6 @@ class KristianModel
                 if(!is_array($this->_primary_key) && $this->_is_incrementing == true)
                 {
                     $this->set($this->_primary_key, $stmt->insert_id);
-                    if(empty($stmt->insert_id)) throw new Exception("statement insert_id empty!", 1);
-                    else var_dump($stmt->insert_id);
-
-                    var_dump($this->get($this->_primary_key));
-
                 }
                 $this->_data_old = $this->_data;
             }

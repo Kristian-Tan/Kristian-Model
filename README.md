@@ -19,6 +19,7 @@ Why? because Laravel eats up inodes so it can't be used in free hosting which li
 - LIMIT clause
 - ORDER BY clause
 - IN / NOT IN operator
+- SELECT only a few columns (not all)
 
 ##### Not Implemented Yet (Might be Supported in the Future)
 - Mass update / mass delete / mass insert

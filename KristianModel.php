@@ -292,9 +292,12 @@ class KristianModel
 
     }
 
-    public function all($rawOrderBy=null,$limit=null,$offset=null) // <FACTORY> <STATIC> // tested
+    public function all($rawOrderBy=null,$limit=null,$offset=null,$columnsToBeSelected=null) // <FACTORY> <STATIC> // tested
     {
-        $sql = "SELECT * FROM " . $this->_table_name;
+        if(is_array($columnsToBeSelected)) $columnsToBeSelected = implode(",", $columnsToBeSelected);
+        else $columnsToBeSelected = "*";
+
+        $sql = "SELECT $columnsToBeSelected FROM " . $this->_table_name;
         if( !is_null($rawOrderBy) )
         {
             $sql .= " ORDER BY " . $rawOrderBy . " ";
@@ -372,9 +375,12 @@ class KristianModel
         }
     }
 
-    public function where($argColumnName, $argOperator = null, $argValue, $rawOrderBy=null,$limit=null,$offset=null) // <FACTORY> <STATIC> // tested
+    public function where($argColumnName, $argOperator = null, $argValue, $rawOrderBy=null,$limit=null,$offset=null, $columnsToBeSelected=null) // <FACTORY> <STATIC> // tested
     // return array of this object
     {
+        if(is_array($columnsToBeSelected)) $columnsToBeSelected = implode(",", $columnsToBeSelected);
+        else $columnsToBeSelected = "*";
+
         // jika operator == null maka diisi "=" semua
         if( is_null($argOperator) )
         {
@@ -392,7 +398,7 @@ class KristianModel
             }
         }
 
-        $sqlWithQuestion = "SELECT * FROM " . $this->_table_name . " WHERE "; // TODO
+        $sqlWithQuestion = "SELECT $columnsToBeSelected FROM " . $this->_table_name . " WHERE "; // TODO
         $arrAllParams = array(); // TODO
 
         if( !is_array($argColumnName) && !is_array($argOperator) )
